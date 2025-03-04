@@ -1,21 +1,9 @@
-//
-//  ManageScreen.swift
-//  Make-it-intelligent
-//
-//  Created by Raghad Altalhi on 02/09/1446 AH.
-//
+////
+////  Untitled.swift
+////  ch6
+////
+////  Created by atheer alshareef on 04/03/2025.
 
-
-/*
-import SwiftUI
-
-struct ManageScreen: View {
-    var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
-    }
-}
-
- */
 import SwiftUI
 
 struct ManageScreen: View {
@@ -34,26 +22,63 @@ struct ManageScreen: View {
     ]
     
     let userDefaultsKey = "SelectedAllergies"
-
+    @Environment(\.presentationMode) var presentationMode // ✅ لإغلاق الصفحة والعودة إلى الكاميرا
+    @State private var searchText = ""
+    
     init() {
         loadAllergies()
     }
 
     var body: some View {
         VStack {
-            Image("manage")
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(height: 50)
-                
-            Text("Manage")
-                .font(.title)
-                .bold()
+            HStack {
+                Button(action: {
+                    presentationMode.wrappedValue.dismiss() // ✅ زر الرجوع إلى الكاميرا
+                }) {
+                    Image(systemName: "arrow.left")
+                        .resizable()
+                        .frame(width: 20, height: 20)
+                        .foregroundColor(.blue)
+                        .padding()
+                }
+                Spacer()
+                Text("Manage")
+                    .font(.title)
+                    .bold()
+                Spacer()
+            }
+            .padding()
             
-            SearchBar()
+            // 🔍 شريط البحث
+            HStack {
+                HStack {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundColor(.gray)
+                    
+                    TextField("Search", text: $searchText)
+                        .padding(10)
+                        .background(Color(.systemGray6))
+                        .cornerRadius(8)
+                        .onChange(of: searchText) { _ in
+                            searchAllergies()
+                        }
+                }
+                if !searchText.isEmpty {
+                    Button(action: {
+                        searchText = ""
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.gray)
+                    }
+                }
+            }
+            .padding(.horizontal)
+            .background(Color(.systemGray6))
+            .cornerRadius(10)
+            .padding(.horizontal)
             
             List {
-                ForEach(allergies.keys.sorted(), id: \.self) { key in
+                ForEach(filteredAllergies.keys.sorted(), id: \.self) { key in
                     HStack {
                         Text(key)
                         Spacer()
@@ -71,18 +96,17 @@ struct ManageScreen: View {
                     }
                 }
             }
-            
             .scrollContentBackground(.hidden) // إخفاء الخلفية الافتراضية للقائمة
-                       .background(Color.white) // تعيين الخلفية إلى الأبيض
-                       
+            .background(Color.white) // تعيين الخلفية إلى الأبيض
             
             Button(action: {
                 saveAllergies()
+                presentationMode.wrappedValue.dismiss() // ✅ إغلاق الصفحة بعد الحفظ
             }) {
                 Text("Save")
                     .frame(width: 300, height: 15)
                     .padding()
-                    .background(LinearGradient(gradient: Gradient(colors: [Color.green2, Color.green1]), startPoint: .leading, endPoint: .trailing))
+                    .background(LinearGradient(gradient: Gradient(colors: [Color.green1, Color.green2]), startPoint: .leading, endPoint: .trailing))
                     .foregroundColor(.white)
                     .cornerRadius(10)
                     .padding()
@@ -94,6 +118,18 @@ struct ManageScreen: View {
         .background(Color.white) // تعيين الخلفية البيضاء للشاشة بأكملها
     }
 
+    var filteredAllergies: [String: Bool] {
+        if searchText.isEmpty {
+            return allergies
+        } else {
+            return allergies.filter { $0.key.lowercased().contains(searchText.lowercased()) }
+        }
+    }
+
+    func searchAllergies() {
+        // يتم تصفية القائمة تلقائيًا عبر `filteredAllergies`
+    }
+
     func saveAllergies() {
         UserDefaults.standard.setValue(allergies, forKey: userDefaultsKey)
     }
@@ -102,19 +138,6 @@ struct ManageScreen: View {
         if let savedData = UserDefaults.standard.dictionary(forKey: userDefaultsKey) as? [String: Bool] {
             allergies = savedData
         }
-    }
-}
-
-struct SearchBar: View {
-    @State private var searchText = ""
-
-    var body: some View {
-        TextField("Search", text: $searchText)
-            .padding(10)
-            .background(Color(.systemGray6))
-            .frame(width: 330, height: 40)
-            .cornerRadius(8)
-            .padding(.horizontal)
     }
 }
 

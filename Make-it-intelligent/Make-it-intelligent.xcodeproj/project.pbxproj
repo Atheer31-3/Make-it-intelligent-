@@ -10,9 +10,22 @@
 		35D25C8E2D6FB38700A200F9 /* Make-it-intelligent.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Make-it-intelligent.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		355522F82D75486500745BDB /* Exceptions for "Make-it-intelligent" folder in "Make-it-intelligent" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 35D25C8D2D6FB38700A200F9 /* Make-it-intelligent */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		35D25C902D6FB38700A200F9 /* Make-it-intelligent */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				355522F82D75486500745BDB /* Exceptions for "Make-it-intelligent" folder in "Make-it-intelligent" target */,
+			);
 			path = "Make-it-intelligent";
 			sourceTree = "<group>";
 		};
@@ -255,6 +268,8 @@
 				DEVELOPMENT_TEAM = Y45U2UB56N;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Make-it-intelligent/Info.plist";
+				INFOPLIST_KEY_NSCameraUsageDescription = "We need access to the camera to scan ingredients";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -284,6 +299,8 @@
 				DEVELOPMENT_TEAM = Y45U2UB56N;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Make-it-intelligent/Info.plist";
+				INFOPLIST_KEY_NSCameraUsageDescription = "We need access to the camera to scan ingredients";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

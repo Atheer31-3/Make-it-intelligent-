@@ -1,0 +1,21 @@
+{
+  "Inputs" : {
+    "text" : {
+      "MLFeatureShortDescription" : ""
+    }
+  },
+  "Outputs" : {
+    "label" : {
+      "MLFeatureShortDescription" : ""
+    },
+    "labelProbability" : {
+      "MLFeatureShortDescription" : ""
+    }
+  },
+  "TrainingInputs" : {
+
+  },
+  "States" : {
+
+  }
+}

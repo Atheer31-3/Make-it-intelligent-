@@ -6,12 +6,20 @@
 //
 
 import SwiftUI
-
+import AVFoundation
+import Vision
+import CoreML
 @main
 struct Make_it_intelligentApp: App {
+    @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding: Bool = false
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            if hasSeenOnboarding {
+                CameraView()
+            } else {
+                OnboardingView()
+            }
         }
     }
 }

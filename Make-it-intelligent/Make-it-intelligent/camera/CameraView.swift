@@ -1,221 +1,114 @@
-// MARK: - Camera & OCR Processing
 
-import SwiftUICore
+import AVFoundation
+import SwiftUI
+import Vision
+import SwiftUI
+import NaturalLanguage
+import CoreML
+
 import SwiftUI
 import AVFoundation
-import Vision
 
-// her frontend on camera
-// MARK: - Camera View
 struct CameraView: View {
-    @State private var showManageAllergies = false
+    @StateObject private var cameraModel = CameraModel()
+    @State private var showSheet: Bool = false
+    @State private var selectedLanguage = "en"
     @State private var allergiesSet = false
     @State private var showAllergyWarning = false
-    @State private var recognizedText: String = ""
-    @State private var scanResult: String = ""
-    @State private var selectedLanguage = "en"
-    let ocrProcessor = OCRProcessor()
-    let allergyModel = AllergyModel()
+    @State private var showManageAllergies = false
+    @State private var storedScannedText: String = ""
+    @State private var storedAllergyResult: String = "لم يتم التحليل بعد"
 
     var body: some View {
-        ZStack {
-            CameraPreview(ocrProcessor: ocrProcessor, recognizedText: $recognizedText, scanResult: $scanResult, allergyModel: allergyModel)
-                .edgesIgnoringSafeArea(.all)
-            VStack {
-                      // 🔹 زر الإعدادات وزر تغيير اللغة
-                      HStack {
-                          Button(action: {
-                              showManageAllergies = true
-                          }) {
-                              Image(systemName: "gearshape.fill")
-                                  .resizable()
-                                  .frame(width: 30, height: 30)
-                                  .padding()
-                                  .background(Color.white.opacity(0.8))
-                                  .cornerRadius(10)
-                                  .shadow(radius: 5)
-                          }
-                          Spacer()
-                          Button(action: {
-                              selectedLanguage = (selectedLanguage == "en") ? "ar" : "en"
-                          }) {
-                              Text(selectedLanguage == "en" ? "🇬🇧 EN" : "🇸🇦 AR")
-                                  .padding()
-                                  .background(Color.white.opacity(0.8))
-                                  .cornerRadius(10)
-                                  .shadow(radius: 5)
-                          }
-                      }
-                      .padding()
-                      
-                      Spacer()
-                      
-                      // 🔹 إشعار إدارة الحساسية
-                      if !allergiesSet {
-                          AllergyWarningView(showManageAllergies: $showManageAllergies)
-                      }
-                  }
-              }
-        .onAppear {
-            checkUserAllergies()
-        }
-        .fullScreenCover(isPresented: $showManageAllergies) {
-            ManageScreen()
-        }
-    }
-    
-    func checkUserAllergies() {
-        if let savedAllergies = UserDefaults.standard.dictionary(forKey: "SelectedAllergies") as? [String: Bool] {
-            allergiesSet = savedAllergies.values.contains(true)
-        }
-        showAllergyWarning = !allergiesSet
-    }
-}
+        NavigationStack {
+            ZStack {
+                CameraPreview(session: cameraModel.session, scannedText: $cameraModel.scannedText)
+                    .edgesIgnoringSafeArea(.all)
 
-// MARK: - Scan Result View
-struct ScanResultView: View {
-    let text: String
-    
-    var body: some View {
-        VStack {
-            Text("Recognized Text:")
-                .font(.headline)
-            ScrollView {
-                Text(text)
-                    .padding()
-                    .background(Color.white)
-                    .cornerRadius(10)
-                    .shadow(radius: 5)
-                    .padding()
-            }
-        }
-        .background(Color.black.opacity(0.7))
-        .cornerRadius(15)
-        .padding()
-    }
-}
+                VStack {
+                    HStack {
+                        NavigationLink(destination: ManageScreen()) {
+                            Image(systemName: "gearshape.fill")
+                                .resizable()
+                                .frame(width: 30, height: 30)
+                                .padding()
+                                .background(Color.white.opacity(0.8))
+                                .cornerRadius(10)
+                                .shadow(radius: 5)
+                        }
 
-// MARK: - OCR Processor
-class OCRProcessor {
-    func recognizeText(from image: CGImage, completion: @escaping (String) -> Void) {
-        let requestHandler = VNImageRequestHandler(cgImage: image, options: [:])
-        let request = VNRecognizeTextRequest { request, error in
-            guard let observations = request.results as? [VNRecognizedTextObservation], error == nil else {
-                completion("Error in OCR")
-                return
-            }
-            let recognizedText = observations
-                .compactMap { $0.topCandidates(1).first?.string }
-                .joined(separator: " ")
-            
-            completion(recognizedText)
-        }
-        request.recognitionLevel = .accurate
-        
-        DispatchQueue.global(qos: .userInitiated).async {
-            do {
-                try requestHandler.perform([request])
-            } catch {
-                print("Error performing OCR: \(error)")
-                completion("OCR Failed")
-            }
-        }
-    }
-}
-extension Notification.Name {
-    static let ocrDidDetectText = Notification.Name("ocrDidDetectText")
-}
-// backend camera
-// MARK: - Camera Preview Layer
-struct CameraPreview: UIViewControllerRepresentable {
-    let ocrProcessor: OCRProcessor
-    @Binding var recognizedText: String
-    @Binding var scanResult: String
-    let allergyModel: AllergyModel
-    static let captureSession = AVCaptureSession() // تأكد من إعادة استخدام نفس الجلسة
+                        Spacer()
 
-    class Coordinator: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
-        var parent: CameraPreview
-
-        init(parent: CameraPreview) { self.parent = parent }
-
-        func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
-            guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
-            let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
-            let context = CIContext()
-
-            if let cgImage = context.createCGImage(ciImage, from: ciImage.extent) {
-                self.parent.ocrProcessor.recognizeText(from: cgImage) { text in
-                    DispatchQueue.main.async {
-                        self.parent.recognizedText = text
-                        self.parent.allergyModel.predict(text: text) { result in
-                            self.parent.scanResult = result
+                        Button(action: {
+                            selectedLanguage = (selectedLanguage == "en") ? "ar" : "en"
+                        }) {
+                            Text(selectedLanguage == "en" ? "🇬🇧 EN" : "🇸🇦 AR")
+                                .padding()
+                                .background(Color.white.opacity(0.8))
+                                .cornerRadius(10)
+                                .shadow(radius: 5)
                         }
                     }
+                    .padding()
+                    Spacer()
+                     
+                    Button(action: {
+                        storedScannedText = cameraModel.scannedText  // ✅ حفظ النص قبل التحليل
+                        print("✅ Stored Scanned Text: \(storedScannedText)") // ✅ طباعة المكونات
+                        analyzeIngredients(using: storedScannedText)  // 🔹 تحليل المكونات
+                        showSheet.toggle()  // فتح الشيت
+                    }) {
+                        Image(systemName: "barcode.viewfinder")
+                            .resizable()
+                            .padding(10)
+                            .frame(width: 80, height: 80)
+                            .padding()
+                            .foregroundColor(.white)
+                            .background(LinearGradient(gradient: Gradient(colors: [Color.green1, Color.green2]), startPoint: .leading, endPoint: .trailing))
+                            .clipShape(Circle())
+                    }
                 }
+                .sheet(isPresented: $showSheet) {
+                    VStack {
+                        Text(storedScannedText.isEmpty ? "No text scanned" : storedScannedText)
+                            .font(.body)
+                            .padding()
+
+                        Text(storedAllergyResult)
+                            .foregroundColor(storedAllergyResult.contains("غير آمن") ? .red : .green)
+                            .bold()
+                            .padding()
+                    }
+                    .presentationDetents([.medium])
+                }
+                
+                if !allergiesSet {
+                    AllergyWarningView(showManageAllergies: $showManageAllergies)
+                }
+            }
+            .onAppear {
+                DispatchQueue.main.async {
+                    let selectedAllergies = UserDefaults.standard.array(forKey: "SelectedAllergies") as? [String] ?? []
+                    allergiesSet = !selectedAllergies.isEmpty
+                }
+            }
+            .onAppear {
+                cameraModel.startSession()
+            }
+            .onDisappear {
+                cameraModel.stopSession()
             }
         }
     }
 
-    func makeCoordinator() -> Coordinator {
-        return Coordinator(parent: self)
-    }
-
-    func makeUIViewController(context: Context) -> UIViewController {
-        let controller = UIViewController()
-
-        // ✅ تأكد من أن الجلسة لم تبدأ من قبل
-        if !CameraPreview.captureSession.isRunning {
-            CameraPreview.captureSession.sessionPreset = .high
-
-            guard let camera = AVCaptureDevice.default(for: .video) else {
-                print("No camera available")
-                return controller
-            }
-
-            do {
-                let input = try AVCaptureDeviceInput(device: camera)
-                if CameraPreview.captureSession.canAddInput(input) {
-                    CameraPreview.captureSession.addInput(input)
-                }
-
-                let previewLayer = AVCaptureVideoPreviewLayer(session: CameraPreview.captureSession)
-                previewLayer.videoGravity = .resizeAspectFill
-                previewLayer.frame = controller.view.bounds
-                controller.view.layer.addSublayer(previewLayer)
-
-                let dataOutput = AVCaptureVideoDataOutput()
-                dataOutput.setSampleBufferDelegate(context.coordinator, queue: DispatchQueue(label: "videoQueue"))
-                if CameraPreview.captureSession.canAddOutput(dataOutput) {
-                    CameraPreview.captureSession.addOutput(dataOutput)
-                }
-
-                DispatchQueue.global(qos: .background).async {
-                    CameraPreview.captureSession.startRunning()
-                }
-            } catch {
-                print("Error setting up camera: \(error)")
-            }
-        }
-
-        return controller
-    }
-
-    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
-
-    static func stopSession() {
-        if captureSession.isRunning {
-            captureSession.stopRunning()
-        }
+    func analyzeIngredients(using text: String) {
+        cameraModel.processScannedText(text)
     }
 }
-
-// her small sheet if not slected your Allergy
-//اذا بتستخدمونها هنا ديزاينها الشيت الصغيره
-
+// MARK: If user didn't select their allergies
 struct AllergyWarningView: View {
     @Binding var showManageAllergies: Bool
-    
+
     var body: some View {
         VStack {
             Image(systemName: "magnifyingglass.circle.fill")
@@ -223,29 +116,27 @@ struct AllergyWarningView: View {
                 .frame(width: 80, height: 80)
                 .foregroundColor(.gray.opacity(0.6))
                 .padding(.bottom, 20)
-            
+
             Text("Your allergies are not set yet.")
                 .font(.headline)
                 .foregroundColor(.black)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
-            
+
             Text("Go to settings to customize your allergies")
                 .foregroundColor(.gray)
                 .multilineTextAlignment(.center)
                 .padding(.bottom, 20)
+
             
-            Button(action: {
-                showManageAllergies = true
-            }) {
-                Text("Go to Manage")
-                    .frame(maxWidth: .infinity)
+            NavigationLink(destination: ManageScreen()) {
+                Text("Go to Settings")
+                    .frame(maxWidth: .infinity, maxHeight: 15)
                     .padding()
-                    .background(LinearGradient(gradient: Gradient(colors: [Color.green.opacity(0.7), Color.green]), startPoint: .leading, endPoint: .trailing))
+                    .background(LinearGradient(gradient: Gradient(colors: [Color.green1, Color.green2]), startPoint: .leading, endPoint: .trailing))
                     .foregroundColor(.white)
                     .cornerRadius(10)
-                    .padding(.horizontal, 50)
-                    .shadow(radius: 5)
+                    .padding()
             }
         }
         .frame(maxWidth: .infinity)
@@ -255,4 +146,8 @@ struct AllergyWarningView: View {
         .shadow(radius: 10)
         .padding(.horizontal, 20)
     }
+    
+}
+#Preview {
+    CameraView()
 }

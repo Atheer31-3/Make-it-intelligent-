@@ -4,9 +4,7 @@
 //
 //  Created by atheer alshareef on 16/02/2025.
 //
-import CoreML
 import Vision
-import Foundation
 
 // استجابة API
 struct OpenFoodFactsResponse: Codable {
@@ -65,47 +63,3 @@ class ProductViewModel: ObservableObject {
 
 
 
-// اللي شغالين عليها
-// MARK: - Allergy Model
-import CoreML
-
-class AllergyModel {
-    var model: random?
-
-    init() {
-        DispatchQueue.global(qos: .background).async {
-            do {
-                let coreMLModel = try random(configuration: MLModelConfiguration())
-                DispatchQueue.main.async {
-                    self.model = coreMLModel
-                }
-            } catch {
-                print("Failed to load Core ML model: \(error)")
-            }
-        }
-    }
-
-    func predict(text: String, completion: @escaping (String) -> Void) {
-        guard let model = model else {
-            completion("Model not loaded yet")
-            return
-        }
-
-        DispatchQueue.global(qos: .userInitiated).async {
-            do {
-                let input = randomInput(text: text)
-                let prediction = try model.prediction(input: input)
-                let result = prediction.label
-
-                DispatchQueue.main.async {
-                    completion(result)
-                }
-            } catch {
-                print("Error performing ML prediction: \(error)")
-                DispatchQueue.main.async {
-                    completion("Error analyzing text")
-                }
-            }
-        }
-    }
-}

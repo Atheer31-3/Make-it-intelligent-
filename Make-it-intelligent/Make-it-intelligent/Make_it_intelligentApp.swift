@@ -14,7 +14,9 @@ struct Make_it_intelligentApp: App {
     @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding: Bool = false
     
     var body: some Scene {
+        
         WindowGroup {
+//            tst()
             if hasSeenOnboarding {
                 CameraView()
             } else {

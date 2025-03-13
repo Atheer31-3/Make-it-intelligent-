@@ -18,104 +18,93 @@ struct ManageScreen: View {
         "Wheat": false,
         "Yeast": false,
         "Banana": false,
-        "Tomato": false
+        "Tomato": false,
     ]
-    
+
     let userDefaultsKey = "SelectedAllergies"
-    @Environment(\.presentationMode) var presentationMode // ✅ لإغلاق الصفحة والعودة إلى الكاميرا
+
+    @Environment(\.presentationMode) var presentationMode
+    // ✅ لإغلاق الصفحة والعودة إلى الكاميرا
     @State private var searchText = ""
-    
+
     init() {
         loadAllergies()
     }
 
     var body: some View {
-        VStack {
-            HStack {
-                Button(action: {
-                    presentationMode.wrappedValue.dismiss() // ✅ زر الرجوع إلى الكاميرا
-                }) {
-                    Image(systemName: "arrow.left")
-                        .resizable()
-                        .frame(width: 20, height: 20)
-                        .foregroundColor(.blue)
-                        .padding()
-                }
-                Spacer()
-                Text("Manage")
-                    .font(.title)
-                    .bold()
-                Spacer()
-            }
-            .padding()
-            
-            // 🔍 شريط البحث
-            HStack {
+        NavigationStack {
+            VStack {
+
+                // 🔍 شريط البحث
                 HStack {
-                    Image(systemName: "magnifyingglass")
-                        .foregroundColor(.gray)
-                    
-                    TextField("Search", text: $searchText)
-                        .padding(10)
-                        .background(Color(.systemGray6))
-                        .cornerRadius(8)
-                        .onChange(of: searchText) { _ in
-                            searchAllergies()
-                        }
-                }
-                if !searchText.isEmpty {
-                    Button(action: {
-                        searchText = ""
-                    }) {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundColor(.gray)
-                    }
-                }
-            }
-            .padding(.horizontal)
-            .background(Color(.systemGray6))
-            .cornerRadius(10)
-            .padding(.horizontal)
-            
-            List {
-                ForEach(filteredAllergies.keys.sorted(), id: \.self) { key in
                     HStack {
-                        Text(key)
-                        Spacer()
-                        Image(systemName: allergies[key] ?? false ? "checkmark.square.fill" : "square")
-                            .foregroundColor(.green)
-                            .onTapGesture {
-                                allergies[key]?.toggle()
-                                saveAllergies()
+                        Image(systemName: "magnifyingglass")
+                            .foregroundColor(.gray)
+
+                        TextField("Search", text: $searchText)
+                            .padding(10)
+                            .background(Color(.systemGray6))
+                            .cornerRadius(8)
+                            .onChange(of: searchText) { _ in
+                                searchAllergies()
                             }
                     }
-                    .contentShape(Rectangle()) // لجعل التفاعل أسهل عند النقر
-                    .onTapGesture {
-                        allergies[key]?.toggle()
-                        saveAllergies()
+                    if !searchText.isEmpty {
+                        Button(action: {
+                            searchText = ""
+                        }) {
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundColor(.gray)
+                        }
                     }
                 }
+                .padding(.horizontal)
+                .background(Color(.systemGray6))
+                .cornerRadius(10)
+                .padding(.horizontal)
+
+                List {
+                    ForEach(filteredAllergies.keys.sorted(), id: \.self) { key in
+                        HStack {
+                            Text(key)
+                            Spacer()
+                            Image(systemName: allergies[key] ?? false ? "checkmark.square.fill" : "square")
+                                .foregroundColor(.green2)
+                                .onTapGesture {
+                                    allergies[key]?.toggle()
+                                    saveAllergies()
+                                }
+                        }
+                        .contentShape(Rectangle())  // لجعل التفاعل أسهل عند النقر
+                        .onTapGesture {
+                            allergies[key]?.toggle()
+                            saveAllergies()
+                        }
+                    }
+                }
+                .scrollContentBackground(.hidden)  // إخفاء الخلفية الافتراضية للقائمة
+                .background(Color.white)  // تعيين الخلفية إلى الأبيض
+
+                Button(action: {
+                    saveAllergies()
+                    presentationMode.wrappedValue.dismiss()  // ✅ إغلاق الصفحة بعد الحفظ
+                }) {
+                    Text("Save")
+                        .frame(maxWidth: .infinity, maxHeight: 15)
+                        .padding()
+                        .background(LinearGradient(gradient: Gradient(colors: [Color.green1, Color.green2]), startPoint: .leading, endPoint: .trailing))
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                        .padding()
+                }
             }
-            .scrollContentBackground(.hidden) // إخفاء الخلفية الافتراضية للقائمة
-            .background(Color.white) // تعيين الخلفية إلى الأبيض
-            
-            Button(action: {
-                saveAllergies()
-                presentationMode.wrappedValue.dismiss() // ✅ إغلاق الصفحة بعد الحفظ
-            }) {
-                Text("Save")
-                    .frame(width: 300, height: 15)
-                    .padding()
-                    .background(LinearGradient(gradient: Gradient(colors: [Color.green1, Color.green2]), startPoint: .leading, endPoint: .trailing))
-                    .foregroundColor(.white)
-                    .cornerRadius(10)
-                    .padding()
+            .onAppear {
+                loadAllergies()
             }
         }
-        .onAppear {
-            loadAllergies()
-        }
-        .background(Color.white) // تعيين الخلفية البيضاء للشاشة بأكملها
+        .navigationTitle("Setting")
+        .padding(.top,30)
+
     }
 
     var filteredAllergies: [String: Bool] {
@@ -131,12 +120,17 @@ struct ManageScreen: View {
     }
 
     func saveAllergies() {
-        UserDefaults.standard.setValue(allergies, forKey: userDefaultsKey)
+        let selectedAllergies = allergies.filter { $0.value }.map { $0.key } // استخراج الحساسية المحددة فقط
+        UserDefaults.standard.set(selectedAllergies, forKey: userDefaultsKey) // حفظها في UserDefaults
+        
+        NotificationCenter.default.post(name: NSNotification.Name("AllergiesUpdated"), object: nil) // إرسال إشعار بالتحديث
     }
-
+    
     func loadAllergies() {
-        if let savedData = UserDefaults.standard.dictionary(forKey: userDefaultsKey) as? [String: Bool] {
-            allergies = savedData
+        if let savedAllergies = UserDefaults.standard.array(forKey: userDefaultsKey) as? [String] {
+            for key in allergies.keys {
+                allergies[key] = savedAllergies.contains(key) // تحديث القيم بناءً على البيانات المخزنة
+            }
         }
     }
 }

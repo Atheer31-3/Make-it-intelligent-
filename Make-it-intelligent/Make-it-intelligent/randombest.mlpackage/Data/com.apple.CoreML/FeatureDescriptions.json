@@ -1,14 +1,17 @@
 {
   "Inputs" : {
-    "text" : {
+    "product_name" : {
+      "MLFeatureShortDescription" : ""
+    },
+    "ingredients_text" : {
       "MLFeatureShortDescription" : ""
     }
   },
   "Outputs" : {
-    "label" : {
+    "allergens_tags" : {
       "MLFeatureShortDescription" : ""
     },
-    "labelProbability" : {
+    "allergens_tagsProbability" : {
       "MLFeatureShortDescription" : ""
     }
   },

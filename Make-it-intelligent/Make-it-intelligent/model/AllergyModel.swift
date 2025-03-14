@@ -34,16 +34,16 @@ class AllergyModel {
             do {
                 let input = randombestInput(
                     product_name: "Unknown Product", // ✅ أدخل اسم المنتج هنا
-                    ingredients_text: ingredients
+                    ingredient_text: ingredients
                 )
                 
                 let prediction = try model.prediction(input: input)
 
                 // ✅ استخراج `ingredients_text` من المودل
-                let extractedAllergens = prediction.allergens_tags
+                let extractedAllergens = prediction.allergy_text
 
                 // ✅ استخراج `allergens_tagsProbability` بأعلى احتمال
-                let sortedProbabilities = prediction.allergens_tagsProbability.sorted { $0.value > $1.value }
+                let sortedProbabilities = prediction.allergy_textProbability.sorted { $0.value > $1.value }
                 let topPrediction = sortedProbabilities.first?.key ?? "Unknown"
 
                 DispatchQueue.main.async {

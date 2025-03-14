@@ -41,22 +41,23 @@ class CameraModel: ObservableObject {
     
     func processScannedText(_ text: String) {
         DispatchQueue.global(qos: .userInitiated).async {
-            print("📸 OCR Scanned Text: \(text)")  // ✅ تحقق مما تم مسحه
+            print("📸 OCR Scanned Text: \(text)")
 
             do {
-                let input = try randombestInput(product_name: "Unknown", ingredients_text: text)
+                let input = randombestInput(product_name: "Unknown", ingredient_text: text)
                 let prediction = try self.model.prediction(input: input)
 
                 DispatchQueue.main.async {
-                    self.scannedText = text
-                    print("📊 Extracted Ingredients for Analysis: \(text)")  // ✅ طباعة النص قبل تحليله
-                    self.analyzeAllergyResult(prediction.allergens_tags)
+                    self.scannedText = text  // ✅ تحديث النص بعد المسح
+                    self.analyzeAllergyResult(prediction.allergy_text)
                 }
             } catch {
                 DispatchQueue.main.async {
                     self.allergyResult = "❌ خطأ في تحليل المكونات"
                 }
                 print("❌ فشل التنبؤ: \(error)")
+                print("🔍 scannedText: \(self.scannedText)")
+                print("🔍 allergyResult: \(self.allergyResult)")
             }
         }
     }
@@ -69,6 +70,9 @@ class CameraModel: ObservableObject {
             allergyResult = "✅ المنتج آمن!"
         } else {
             allergyResult = "⚠️ غير آمن! يحتوي على: \(matchedAllergens.joined(separator: ", "))"
+            print("🔍 scannedText: \(scannedText)")
+            print("🔍 allergyResult: \(allergyResult)")
         }
     }
+    
 }

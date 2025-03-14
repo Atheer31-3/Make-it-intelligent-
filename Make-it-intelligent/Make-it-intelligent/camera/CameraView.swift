@@ -79,7 +79,6 @@ struct CameraView: View {
                             .bold()
                             .padding()
                     }
-                    .presentationDetents([.medium])
                 }
                 
                 if !allergiesSet {
@@ -98,11 +97,14 @@ struct CameraView: View {
             .onDisappear {
                 cameraModel.stopSession()
             }
+            
         }
+        
     }
 
     func analyzeIngredients(using text: String) {
         cameraModel.processScannedText(text)
+        storedAllergyResult = cameraModel.allergyResult  // ✅ تحديث النتيجة فورًا
     }
 }
 // MARK: If user didn't select their allergies

@@ -1,3 +1,9 @@
+//
+//  Onboarding.swift
+//  LiveTextDemo
+//
+//  Created by Raneem on 15/09/1446 AH.
+//
 
 import SwiftUI
 
@@ -29,28 +35,36 @@ struct OnboardingPage: View {
     var imageName: String
 
     var body: some View {
-        VStack {
+      VStack {
             Image(imageName)
                 .resizable()
                 .scaledToFit()
                 .frame(width: 300, height: 300)
                 .padding(.top, 50)
 
-            Text(title)
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .padding(.top, 20)
+            VStack(alignment: .leading, spacing: 8) {
+                Rectangle()
+                    .fill(Color("green2"))
+                    .frame(width: 35, height: 6)
+                    .cornerRadius(10)
+                    .padding(.bottom, 10)
 
-            Text(description)
-                .font(.body)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal)
-                .padding(.top, 10)
+                Text(title)
+                    .font(.system(size: 22, weight: .bold))
+                    .foregroundColor(.black)
+                    .frame(maxWidth: .infinity, alignment: .leading) // ضبط المحاذاة لليسار
 
-            Spacer()
-        }
-        .foregroundColor(.black)
-    }
+                Text(description)
+                    .font(.system(size: 16))
+                    .foregroundColor(.black)
+                    .multilineTextAlignment(.leading)
+                    .frame(maxWidth: .infinity, alignment: .leading) // ضبط المحاذاة لليسار
+                    .padding(.bottom, 10)
+            }
+            .padding(.horizontal, 20) // ضبط الهوامش
+            .padding(.top, 80)
+            .frame(maxWidth: .infinity, alignment: .leading) // تأكد من أن كل المحتوى محاذٍ لليسار
+        }}
 }
 
 // Onboarding View
@@ -65,7 +79,7 @@ struct OnboardingView: View {
                 hasSeenOnboarding = true
             }) {
                 Text("Skip")
-                    .foregroundColor(.pink)
+                    .foregroundColor(Color("green2"))
                     .padding(.top, 20)
             }
             .frame(maxWidth: .infinity, alignment: .trailing)
@@ -73,14 +87,14 @@ struct OnboardingView: View {
 
             // TabView for onboarding pages
             TabView(selection: $currentPage) {
-                OnboardingPage(title: "AI Chat Assistant",
-                               description: "Chat with the smartest AI. Experience the power of AI + you.",
-                               imageName: "Image1").tag(0)
-                OnboardingPage(title: "Generate Stunning Visuals",
-                               description: "Transform your ideas into stunning visuals with AI-powered image generation.",
-                               imageName: "Image1").tag(1)
-                OnboardingPage(title: "Voice to Transcript",
-                               description: "Convert your voice to text instantly with our accurate transcription tool.",
+                OnboardingPage(title: "Avoid reacting ",
+                               description: "Check if your food are safe ",
+                               imageName: "Image2").tag(0)
+                OnboardingPage(title: "Safety with one touch",
+                               description: "Easily scan food product ingredients and detect allergens.",
+                               imageName: "Image").tag(1)
+                OnboardingPage(title: "Packaged products",
+                               description: "Scan the ingredient label.",
                                imageName: "Image1").tag(2)
             }
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
@@ -102,7 +116,7 @@ struct OnboardingView: View {
                     .padding()
                     .frame(width: 350, height: 50)
                     .background(
-                        LinearGradient(gradient: Gradient(colors: [Color.green1, Color.green2]), startPoint: .leading, endPoint: .trailing)
+                        LinearGradient(gradient: Gradient(colors: [Color("green1"), Color("green2")]),startPoint: .leading,endPoint: .trailing)
                     )
                     .foregroundColor(.white)
                     .cornerRadius(15)
@@ -112,5 +126,3 @@ struct OnboardingView: View {
         .background(Color.white.opacity(0.3).edgesIgnoringSafeArea(.all))
     }
 }
-
-

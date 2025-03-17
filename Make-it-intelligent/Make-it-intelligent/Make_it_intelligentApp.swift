@@ -18,7 +18,7 @@ struct Make_it_intelligentApp: App {
         WindowGroup {
 //            tst()
             if hasSeenOnboarding {
-                CameraView()
+                ContentView()
             } else {
                 OnboardingView()
             }

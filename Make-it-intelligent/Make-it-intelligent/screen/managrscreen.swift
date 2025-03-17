@@ -1,14 +1,13 @@
-////
-////  Untitled.swift
-////  ch6
-////
-////  Created by atheer alshareef on 04/03/2025.
-
 import SwiftUI
+import VisionKit
+import AVFoundation
+import UIKit
 
 struct ManageScreen: View {
+    var onDismiss: (() -> Void)? // جعل onDismiss اختيارياً
+
     @State private var allergies: [String: Bool] = [
-        "Milk": false,
+        "Dairy Product": false,
         "Egg": false,
         "Fish": false,
         "Soybean": false,
@@ -20,22 +19,18 @@ struct ManageScreen: View {
         "Banana": false,
         "Tomato": false,
     ]
-
     let userDefaultsKey = "SelectedAllergies"
-
+    
     @Environment(\.presentationMode) var presentationMode
-    // ✅ لإغلاق الصفحة والعودة إلى الكاميرا
+    
     @State private var searchText = ""
 
     init() {
         loadAllergies()
     }
-
     var body: some View {
         NavigationStack {
             VStack {
-
-                // 🔍 شريط البحث
                 HStack {
                     HStack {
                         Image(systemName: "magnifyingglass")
@@ -62,20 +57,20 @@ struct ManageScreen: View {
                 .background(Color(.systemGray6))
                 .cornerRadius(10)
                 .padding(.horizontal)
-
+               
                 List {
-                    ForEach(filteredAllergies.keys.sorted(), id: \.self) { key in
+                    ForEach(filteredAllergies.keys.sorted(), id: \..self) { key in
                         HStack {
                             Text(key)
                             Spacer()
                             Image(systemName: allergies[key] ?? false ? "checkmark.square.fill" : "square")
-                                .foregroundColor(.green2)
+                                .foregroundColor(Color("green2"))
                                 .onTapGesture {
                                     allergies[key]?.toggle()
                                     saveAllergies()
                                 }
                         }
-                        .contentShape(Rectangle())  // لجعل التفاعل أسهل عند النقر
+                        .contentShape(Rectangle())
                         .onTapGesture {
                             allergies[key]?.toggle()
                             saveAllergies()
@@ -85,28 +80,32 @@ struct ManageScreen: View {
                 .scrollContentBackground(.hidden)  // إخفاء الخلفية الافتراضية للقائمة
                 .background(Color.white)  // تعيين الخلفية إلى الأبيض
 
+                
+                
                 Button(action: {
+                    let selectedAllergies = allergies.filter { $0.value }.map { $0.key }
+                        print("Selected Allergies: \(selectedAllergies)") // Print selected allergies
+                    
                     saveAllergies()
-                    presentationMode.wrappedValue.dismiss()  // ✅ إغلاق الصفحة بعد الحفظ
+//                    onDismiss?()
+                    presentationMode.wrappedValue.dismiss()
                 }) {
                     Text("Save")
                         .frame(maxWidth: .infinity, maxHeight: 15)
                         .padding()
-                        .background(LinearGradient(gradient: Gradient(colors: [Color.green1, Color.green2]), startPoint: .leading, endPoint: .trailing))
+                        .background(LinearGradient(gradient: Gradient(colors: [Color("green1"), Color("green2")]), startPoint: .leading, endPoint: .trailing))
                         .foregroundColor(.white)
                         .cornerRadius(10)
                         .padding()
                 }
             }
-            .onAppear {
-                loadAllergies()
-            }
         }
-        .navigationTitle("Setting")
-        .padding(.top,30)
-
+        .navigationTitle("Settings")
+        .onAppear {
+            loadAllergies()
+        }
     }
-
+    
     var filteredAllergies: [String: Bool] {
         if searchText.isEmpty {
             return allergies
@@ -114,30 +113,25 @@ struct ManageScreen: View {
             return allergies.filter { $0.key.lowercased().contains(searchText.lowercased()) }
         }
     }
-
     func searchAllergies() {
         // يتم تصفية القائمة تلقائيًا عبر `filteredAllergies`
     }
-
     func saveAllergies() {
-        let selectedAllergies = allergies.filter { $0.value }.map { $0.key } // استخراج الحساسية المحددة فقط
-        UserDefaults.standard.set(selectedAllergies, forKey: userDefaultsKey) // حفظها في UserDefaults
-        
-        NotificationCenter.default.post(name: NSNotification.Name("AllergiesUpdated"), object: nil) // إرسال إشعار بالتحديث
+        let selectedAllergies = allergies.filter { $0.value }.map { $0.key }
+        UserDefaults.standard.set(selectedAllergies, forKey: userDefaultsKey)
+//        UserDefaults.standard.set(true, forKey: "hasSetAllergies")
+        UserDefaults.standard.set(!selectedAllergies.isEmpty, forKey: "hasSetAllergies")
+        NotificationCenter.default.post(name: NSNotification.Name("AllergiesUpdated"), object: nil)
+        print("in manga class: Saved Allergies: \(selectedAllergies)")
     }
+
     
     func loadAllergies() {
         if let savedAllergies = UserDefaults.standard.array(forKey: userDefaultsKey) as? [String] {
             for key in allergies.keys {
-                allergies[key] = savedAllergies.contains(key) // تحديث القيم بناءً على البيانات المخزنة
+                allergies[key] = savedAllergies.contains(key)
             }
         }
-    }
-}
-
-struct AllergySettingsView_Previews: PreviewProvider {
-    static var previews: some View {
-        ManageScreen()
     }
 }
 #Preview {

@@ -6,12 +6,7 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXBuildFile section */
-		355C17DA2D84EAB6003B5648 /* randombest.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 355C17D92D84EAB6003B5648 /* randombest.mlmodel */; };
-/* End PBXBuildFile section */
-
 /* Begin PBXFileReference section */
-		355C17D92D84EAB6003B5648 /* randombest.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; path = randombest.mlmodel; sourceTree = "<group>"; };
 		35D25C8E2D6FB38700A200F9 /* Make-it-intelligent.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Make-it-intelligent.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -51,7 +46,6 @@
 			isa = PBXGroup;
 			children = (
 				35D25C902D6FB38700A200F9 /* Make-it-intelligent */,
-				355C17D92D84EAB6003B5648 /* randombest.mlmodel */,
 				35D25C8F2D6FB38700A200F9 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -138,7 +132,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				355C17DA2D84EAB6003B5648 /* randombest.mlmodel in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
